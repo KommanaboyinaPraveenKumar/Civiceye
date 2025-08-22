@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizens Portal - Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Main Login Section -->
+        <div class="main-login-section" id="mainLoginSection">
+            <div class="login-container">
+                <!-- Left Side - Branding -->
+                <div class="login-branding">
+                    <div class="brand-content">
+                        <h1><i class="fas fa-users"></i> Citizens Portal</h1>
+                        <p>Official portal for citizens and government officials</p>
+                        <div class="brand-features">
+                            <div class="feature-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Secure Access</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-handshake"></i>
+                                <span>Government Services</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-comments"></i>
+                                <span>Direct Communication</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side - Login Form -->
+                <div class="login-form-container">
+                    <div class="login-form-card">
+                        <div class="form-header">
+                            <h2>Welcome Back</h2>
+                            <p>Sign in to access your account</p>
+                        </div>
+
+                        <!-- Login Form -->
+                        <form id="loginForm" class="login-form">
+                            <div class="form-group">
+                                <label for="loginUsername">Username</label>
+                                <input type="text" id="loginUsername" name="loginUsername" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="loginPassword">Password</label>
+                                <input type="password" id="loginPassword" name="loginPassword" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-login">Sign In</button>
+                        </form>
+
+                        <!-- Registration Toggle -->
+                        <div class="form-footer">
+                            <p>Don't have an account? <a href="#" onclick="toggleToRegistration()">Sign up</a></p>
+                        </div>
+                    </div>
+
+                    <!-- Registration Form (Hidden by default) -->
+                    <div class="registration-form-card" id="registrationFormCard" style="display: none;">
+                        <div class="form-header">
+                            <h2>Create Account</h2>
+                            <p>Join the citizens portal</p>
+                        </div>
+
+                        <form id="registrationForm" class="registration-form">
+                            <div class="form-group">
+                                <label for="regFullName">Full Name</label>
+                                <input type="text" id="regFullName" name="regFullName" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="regEmail">Email</label>
+                                <input type="email" id="regEmail" name="regEmail" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="regPhone">Phone Number</label>
+                                <input type="tel" id="regPhone" name="regPhone" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="userType">User Type</label>
+                                <select id="userType" name="userType" required onchange="toggleUserTypeFields()">
+                                    <option value="">Select User Type</option>
+                                    <option value="citizen">Citizen</option>
+                                    <option value="official">Government Official</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Citizen-specific fields -->
+                            <div id="citizenFields" style="display: none;">
+                                <div class="form-group">
+                                    <label for="aadharNumber">Aadhar Number</label>
+                                    <input type="text" id="aadharNumber" name="aadharNumber" maxlength="12" placeholder="12-digit Aadhar number">
+                                </div>
+                                <div class="form-group">
+                                    <label for="aadharOTP">Aadhar OTP</label>
+                                    <div class="otp-group">
+                                        <input type="text" id="aadharOTP" name="aadharOTP" maxlength="6" placeholder="6-digit OTP">
+                                        <button type="button" class="btn btn-small" onclick="generateOTP()">Generate OTP</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Official-specific fields -->
+                            <div id="officialFields" style="display: none;">
+                                <div class="form-group">
+                                    <label for="designation">Designation</label>
+                                    <select id="designation" name="designation">
+                                        <option value="">Select Designation</option>
+                                        <option value="municipal_corporation">Municipal Corporation</option>
+                                        <option value="police_department">Police Department</option>
+                                        <option value="health_department">Health Department</option>
+                                        <option value="education_department">Education Department</option>
+                                        <option value="transport_department">Transport Department</option>
+                                        <option value="water_supply">Water Supply Department</option>
+                                        <option value="electricity_board">Electricity Board</option>
+                                        <option value="tax_department">Tax Department</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="officialId">Official ID Number</label>
+                                    <input type="text" id="officialId" name="officialId" placeholder="Official ID/Employee Number">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="regUsername">Username</label>
+                                <input type="text" id="regUsername" name="regUsername" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="regPassword">Password</label>
+                                <input type="password" id="regPassword" name="regPassword" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="regConfirmPassword">Confirm Password</label>
+                                <input type="password" id="regConfirmPassword" name="regConfirmPassword" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-register">Create Account</button>
+                        </form>
+
+                        <!-- Login Toggle -->
+                        <div class="form-footer">
+                            <p>Already have an account? <a href="#" onclick="toggleToLogin()">Sign in</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Citizen Dashboard -->
+        <div class="dashboard-section" id="citizenDashboard" style="display: none;">
+            <div class="dashboard-header">
+                <h2><i class="fas fa-user"></i> Citizen Dashboard</h2>
+                <button class="btn btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            <div class="dashboard-content">
+                <div class="user-info-card">
+                    <h3>Welcome, <span id="citizenName"></span>!</h3>
+                    <p><strong>User Type:</strong> Citizen</p>
+                    <p><strong>Email:</strong> <span id="citizenEmail"></span></p>
+                    <p><strong>Phone:</strong> <span id="citizenPhone"></span></p>
+                    <p><strong>Aadhar Number:</strong> <span id="citizenAadhar"></span></p>
+                    <p><strong>Username:</strong> <span id="citizenUsername"></span></p>
+                </div>
+                <div class="dashboard-message">
+                    <h4>You are a Citizen</h4>
+                    <p>This is your personal dashboard where you can access various citizen services and submit complaints or requests to government officials.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Official Dashboard -->
+        <div class="dashboard-section" id="officialDashboard" style="display: none;">
+            <div class="dashboard-header">
+                <h2><i class="fas fa-user-tie"></i> Government Official Dashboard</h2>
+                <button class="btn btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            <div class="dashboard-content">
+                <div class="user-info-card">
+                    <h3>Welcome, <span id="officialName"></span>!</h3>
+                    <p><strong>User Type:</strong> Government Official</p>
+                    <p><strong>Email:</strong> <span id="officialEmail"></span></p>
+                    <p><strong>Phone:</strong> <span id="officialPhone"></span></p>
+                    <p><strong>Designation:</strong> <span id="officialDesignation"></span></p>
+                    <p><strong>Official ID:</strong> <span id="officialIdDisplay"></span></p>
+                    <p><strong>Username:</strong> <span id="officialUsername"></span></p>
+                </div>
+                <div class="dashboard-message">
+                    <h4>You are a Government Official</h4>
+                    <p>This is your official dashboard where you can manage citizen requests, view complaints, and handle administrative tasks for your department.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
