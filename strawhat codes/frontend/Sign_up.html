@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="auth-section">
+    <div class="auth-card">
+      <div class="form-header">
+        <h2>Register</h2>
+        <p>Signup now and get full access to our app.</p>
+      </div>
+      <form class="form" id="registrationForm">
+        <div class="form-group">
+          <label for="regFullName">Full Name</label>
+          <input type="text" id="regFullName" placeholder="Enter full name" required>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" placeholder="Enter email" required>
+        </div>
+        <div class="form-group">
+          <label for="regPhone">Phone Number</label>
+          <input type="text" id="regPhone" placeholder="Enter phone number" required>
+        </div>
+        <div class="form-group">
+          <label for="userType">User Type</label>
+          <select id="userType" onchange="toggleUserTypeFields()" required>
+            <option value="">Select User Type</option>
+            <option value="citizen">Citizen</option>
+            <option value="official">Government Official</option>
+          </select>
+        </div>
+        <div class="form-group" id="citizenFields" style="display:none">
+          <label for="aadharNumber">Aadhar Number</label>
+          <input type="text" id="aadharNumber" placeholder="Enter Aadhar number">
+        </div>
+        <div class="form-group" id="officialFields" style="display:none">
+          <label for="designationId">Designation ID</label>
+          <input type="text" id="designationId" placeholder="Enter designation ID">
+          <label for="designation">Designation</label>
+          <select id="designation">
+            <option value="">Select Designation</option>
+            <option value="municipal_corporation">Municipal Corporation</option>
+            <option value="police_department">Police Department</option>
+            <option value="health_department">Health Department</option>
+            <option value="education_department">Education Department</option>
+            <option value="transport_department">Transport Department</option>
+            <option value="water_supply">Water Supply Department</option>
+            <option value="electricity_board">Electricity Board</option>
+            <option value="tax_department">Tax Department</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password</label>
+          <input type="password" id="regPassword" placeholder="Enter password" required>
+        </div>
+        <div class="form-group">
+          <label for="regConfirmPassword">Confirm password</label>
+          <input type="password" id="regConfirmPassword" placeholder="Confirm password" required>
+        </div>
+        <button type="submit" class="btn btn-register btn-primary">Submit</button>
+      </form>
+      <div class="form-footer">
+        <p>Already have an account? <a href="Citizenlogin.html">Login</a></p>
+      </div>
+    </div>
+  </div>
+  <script src="validate.js"></script>
+</body>
+</html>

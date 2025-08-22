@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Official Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="back-button-container">
+      <button class="back-btn" onclick="goBack()">
+        <i class="fa fa-arrow-left"></i> Back to Home
+      </button>
+    </div>
+    <div class="login-box">
+      <h2>Official Login</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginUsername">Designation ID</label>
+          <input type="text" id="loginUsername" placeholder="Enter your designation ID" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="btn btn-login btn-primary">Log in</button>
+      </form>
+      <div class="test-section">
+        <button id="testBackend" onclick="testBackendConnection()">Test Backend Connection</button>
+        <p class="test-info">First time? You may need to register an official account first.</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    function goBack() {
+      window.location.href = 'index.html';
+    }
+
+    const API_BASE = 'http://localhost:3000/api';
+    const loginForm = document.getElementById('loginForm');
+
+    // async function testConnection() {
+    //   try {
+    //     console.log('Testing backend connection...');
+    //     const res = await fetch(`${API_BASE}/posts`, {
+    //       method: 'GET',
+    //       headers: { 'Content-Type': 'application/json' }
+    //     });
+    //     if (res.status === 401) {
+    //       alert('✅ Backend is running! (Authentication required - this is normal)');
+    //     } else {
+    //       alert(`✅ Backend is running! Status: ${res.status}`);
+    //     }
+    //   } catch (error) {
+    //     console.error('Connection test failed:', error);
+    //     alert('❌ Cannot connect to backend. Please ensure:\n\n1. Backend server is running on port 3000\n2. MongoDB is running\n3. No firewall blocking the connection');
+    //   }
+    // }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      console.log('Attempting login with:', { username, password: '***' });
+
+      try {
+        const res = await fetch(`${API_BASE}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        console.log('Login response status:', res.status);
+        console.log('Login response headers:', res.headers);
+
+        const data = await res.json();
+        console.log('Login response data:', data);
+
+        if (!res.ok) throw new Error(data.error || 'Login failed');
+        localStorage.setItem('civiceye_token', data.token);
+        localStorage.setItem('civiceye_user_v1', JSON.stringify(data.user));
+        localStorage.setItem('civiceye_userId', data.user.id);
+        console.log('Login successful, redirecting to dashboard...');
+        window.location.href = 'Officialdash.html';
+      } catch (error) {
+        console.error('Login error:', error);
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          alert('Cannot connect to server. Please ensure the backend is running on http://localhost:3000');
+        } else {
+          alert('Login failed: ' + error.message);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,480 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #2C2F33;
+    min-height: 100vh;
+    color: #FFF085;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.main-login-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Back Button Styling */
+.back-button-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.back-btn {
+  background: linear-gradient(135deg, #374151, #1f2937);
+  color: #fbbf24;
+  border: 2px solid #fbbf24;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.back-btn:hover {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1f2937;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+}
+
+.back-btn i {
+  font-size: 16px;
+}
+
+/* Login Container Positioning */
+.login-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1f2937, #111827);
+}
+
+/* Login Box Styling */
+.login-box {
+  background: #374151;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 2px solid #fbbf24;
+  max-width: 400px;
+  width: 100%;
+  margin: 20px;
+}
+
+.login-box h2 {
+  color: #fbbf24;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.login-branding {
+    flex: 1;
+    background-color: #23272A;
+    color: #FFF085;
+    padding: 60px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.brand-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+.brand-content p {
+    font-size: 1.1rem;
+    margin-bottom: 40px;
+    opacity: 0.9;
+}
+
+.brand-features {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1rem;
+}
+
+.feature-item i {
+    font-size: 1.5rem;
+    color: #FFF085;
+}
+
+.login-form-container {
+    flex: 1;
+    padding: 60px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.login-form-card,
+.registration-form-card {
+    width: 100%;
+    max-width: 400px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-header h2 {
+    font-size: 2rem;
+    color: #FFF085;
+    margin-bottom: 10px;
+}
+
+.form-header p {
+    color: #ddd;
+    font-size: 1rem;
+}
+
+/* Button Styling */
+.btn {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1f2937;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+}
+
+.btn-login,
+.btn-register {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 1.1rem;
+    margin-top: 20px;
+}
+
+.btn-secondary {
+    background: #607D8B;
+    color: #FFF085;
+}
+
+.btn-secondary:hover {
+    background: #455A64;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(96, 125, 139, 0.3);
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+.btn-logout {
+    background: #f44336;
+    color: white;
+}
+
+.btn-logout:hover {
+    background: #d32f2f;
+}
+
+.auth-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 20px;
+}
+
+.auth-card {
+    background: #1a1a1a;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 100%;
+    max-width: 500px;
+    animation: slideUp 0.5s ease;
+    border: 1px solid #333;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.auth-card h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #FFF085;
+    font-size: 2rem;
+}
+
+/* Form Styling */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #f3f4f6;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #4b5563;
+  border-radius: 8px;
+  background: #1f2937;
+  color: #f3f4f6;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+.otp-group {
+    display: flex;
+    gap: 10px;
+}
+
+.otp-group input {
+    flex: 1;
+}
+
+.otp-group .btn {
+    white-space: nowrap;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.form-actions .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+.form-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+}
+
+.form-footer p {
+    margin: 0;
+    color: #ddd;
+    font-size: 0.95rem;
+}
+
+.form-footer a {
+    color: #7289DA;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.form-footer a:hover {
+    color: #5b6eae;
+    text-decoration: underline;
+}
+
+.dashboard-section {
+    background: #1a1a1a;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+    animation: slideUp 0.5s ease;
+    border: 1px solid #333;
+}
+
+.dashboard-header {
+    background-color: #23272A;
+    color: #FFF085;
+    padding: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-header h2 {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.dashboard-content {
+    padding: 30px;
+}
+
+.user-info-card {
+    background: #23272A;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border-left: 4px solid #7289DA;
+}
+
+.user-info-card h3 {
+    color: #7289DA;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.user-info-card p {
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.dashboard-message {
+    background: #23272A;
+    padding: 25px;
+    border-radius: 12px;
+    border-left: 4px solid #7289DA;
+}
+
+.dashboard-message h4 {
+    color: #7289DA;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.dashboard-message p {
+    color: #ddd;
+    line-height: 1.6;
+}
+
+/* Test Section */
+.test-section {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#testBackend {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.test-info {
+  color: #9ca3af;
+  font-size: 14px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        max-width: 100%;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+    
+    .login-branding {
+        padding: 40px 20px;
+        min-height: 200px;
+    }
+    
+    .brand-content h1 {
+        font-size: 2rem;
+    }
+    
+    .login-form-container {
+        padding: 40px 20px;
+    }
+    
+    .form-header h2 {
+        font-size: 1.8rem;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .otp-group {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .welcome-content h1 {
+        font-size: 2rem;
+    }
+    
+    .auth-card {
+        padding: 20px 15px;
+    }
+    
+    .dashboard-content {
+        padding: 20px;
+    }
+}

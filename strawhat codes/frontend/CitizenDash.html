@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicEye • Citizen Feed</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <div class="brand-badge">CE</div>
+        CivicEye • Citizen Feed
+      </div>
+      <div class="nav-actions">
+        <span>See, Report, Resolve</span>
+        <button id="profileBtn" class="profile-btn" aria-label="Open profile">
+          <span class="avatar"></span>
+          <span>Profile</span>
+        </button>
+        <button id="logoutBtn" class="profile-btn" aria-label="Log out">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="filters">
+      <button class="filter active" data-sort="top">Top issues</button>
+      <button class="filter" data-sort="new">Most recent</button>
+      <button class="filter" data-sort="near">Near me</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-status="all">All</button>
+      <button class="tab" data-status="unsolved">Unsolved</button>
+      <button class="tab" data-status="solved">Solved</button>
+    </div>
+
+    <div id="feed" class="grid"></div>
+    <div id="empty" class="empty">No posts yet. Tap + to create your first report.</div>
+  </main>
+
+  <button id="fab" class="fab" aria-label="Create post">+</button>
+
+  <div id="drawerBackdrop" class="modal">
+    <aside id="profileDrawer" class="modal-content drawer" aria-hidden="true" aria-label="Profile panel">
+      <span class="close" id="closeDrawer">&times;</span>
+      <h3>My Profile</h3>
+      <div class="profile-header">
+        <span class="avatar" style="width:64px; height:64px;"></span>
+        <div>
+          <div id="profileName" style="font-weight:700">Citizen</div>
+          <div id="profileEmail" class="mini">citizen@example.com</div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <span class="stat">📝 <span id="statPosts">0</span> Posts</span>
+        <span class="stat">🚩 <span id="statFlags">0</span> Reactions</span>
+        <span class="stat">✅ <span id="statSolved">0</span> Solved</span>
+      </div>
+      <h4>My Posts</h4>
+      <div id="myPosts" class="list mini"></div>
+      <h4>Solved Issues</h4>
+      <div id="mySolved" class="list mini"></div>
+      <h4>My Reactions</h4>
+      <div id="myReactions" class="list mini"></div>
+    </aside>
+  </div>
+
+  <div id="detailBackdrop" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <span class="close" id="detailClose">&times;</span>
+      <h3 id="detailTitle">Post</h3>
+      <div id="detailBody"></div>
+    </div>
+  </div>
+
+  <div id="backdrop" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <span class="close" id="cancel">&times;</span>
+      <h3 id="modalTitle">Create a new post</h3>
+      <form id="postForm">
+        <div class="row">
+          <div>
+            <label for="image">Image of the issue</label>
+            <input type="file" id="image" accept="image/jpeg,image/png" required style="background: #374151; color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 8px; width: 100%;">
+            <img id="preview" class="preview" alt="Preview" />
+          </div>
+          <div>
+            <label for="description">Description</label>
+            <textarea id="description" placeholder="Briefly describe the problem" required></textarea>
+            <label for="location">Location</label>
+            <input type="text" id="location" placeholder="e.g., Ward 12, MG Road, City" required>
+            <label for="officials">Tag officials (comma separated)</label>
+            <input type="text" id="officials" placeholder="e.g., Sanitation Dept, Ward Officer" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Post</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000/api';
+    const API_ORIGIN = API_BASE.replace(/\/api$/, '');
+    let sortMode = 'top';
+    let statusFilter = 'all';
+
+    const $feed = document.getElementById('feed');
+    const $empty = document.getElementById('empty');
+    const $fab = document.getElementById('fab');
+    const $backdrop = document.getElementById('backdrop');
+    const $form = document.getElementById('postForm');
+    const $image = document.getElementById('image');
+    const $preview = document.getElementById('preview');
+    const $desc = document.getElementById('description');
+    const $loc = document.getElementById('location');
+    const $officials = document.getElementById('officials');
+    const $cancel = document.getElementById('cancel');
+    const $cancelBtn = document.getElementById('cancelBtn');
+    const $profileBtn = document.getElementById('profileBtn');
+    const $logoutBtn = document.getElementById('logoutBtn');
+    const $drawer = document.getElementById('profileDrawer');
+    const $drawerBackdrop = document.getElementById('drawerBackdrop');
+    const $closeDrawer = document.getElementById('closeDrawer');
+    const $myPosts = document.getElementById('myPosts');
+    const $myReactions = document.getElementById('myReactions');
+    const $statPosts = document.getElementById('statPosts');
+    const $statFlags = document.getElementById('statFlags');
+    const $statSolved = document.getElementById('statSolved');
+    const $profileName = document.getElementById('profileName');
+    const $profileEmail = document.getElementById('profileEmail');
+    const $mySolved = document.getElementById('mySolved');
+    const $detailBackdrop = document.getElementById('detailBackdrop');
+    const $detailBody = document.getElementById('detailBody');
+    const $detailClose = document.getElementById('detailClose');
+
+    function escapeHtml(unsafe) {
+      return (unsafe || '')
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function timeAgo(date) {
+      const now = new Date();
+      const seconds = Math.floor((now - new Date(date)) / 1000);
+      let interval = Math.floor(seconds / 31536000);
+      if (interval >= 1) return interval + " year" + (interval === 1 ? "" : "s") + " ago";
+      interval = Math.floor(seconds / 2592000);
+      if (interval >= 1) return interval + " month" + (interval === 1 ? "" : "s") + " ago";
+      interval = Math.floor(seconds / 86400);
+      if (interval >= 1) return interval + " day" + (interval === 1 ? "" : "s") + " ago";
+      interval = Math.floor(seconds / 3600);
+      if (interval >= 1) return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
+      interval = Math.floor(seconds / 60);
+      if (interval >= 1) return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
+      return "just now";
+    }
+
+    async function getUser() {
+      const user = JSON.parse(localStorage.getItem('civiceye_user_v1'));
+      const token = localStorage.getItem('civiceye_token');
+      if (!user || !token) {
+        console.error('No user or token found, redirecting to login');
+        window.location.href = 'Citizenlogin.html';
+        return null;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/user/${user.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error(`User fetch failed: ${await res.text()}`);
+        return await res.json();
+      } catch (error) {
+        console.error('User fetch error:', error.message);
+        localStorage.removeItem('civiceye_token');
+        localStorage.removeItem('civiceye_user_v1');
+        window.location.href = 'Citizenlogin.html';
+        return null;
+      }
+    }
+
+    async function getVotes(userId) {
+      try {
+        const res = await fetch(`${API_BASE}/votes?userId=${userId}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}` }
+        });
+        if (!res.ok) throw new Error(`Votes fetch failed: ${await res.text()}`);
+        const votes = await res.json();
+        console.log('Fetched votes:', votes.length);
+        return new Set(votes.map(v => v.postId));
+      } catch (error) {
+        console.error('Votes fetch error:', error.message);
+        return new Set();
+      }
+    }
+
+    function computeStatus(p) {
+      if (p.citizenConfirmed || (p.resolution && p.resolution.afterImage)) return 'resolved';
+      if (p.resolution && p.resolution.awaitingCitizenConfirmation) return 'in_progress';
+      return 'pending';
+    }
+
+    async function render() {
+      const user = await getUser();
+      if (!user) return;
+      try {
+        const res = await fetch(`${API_BASE}/posts?cacheBust=${Date.now()}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}` }
+        });
+        if (!res.ok) throw new Error(`Posts fetch failed: ${await res.text()}`);
+        const posts = await res.json();
+        console.log('Fetched posts:', posts);
+        const votes = await getVotes(user.id);
+
+        const visible = posts.filter(p => {
+          const st = computeStatus(p);
+          if (statusFilter === 'all') return true;
+          if (statusFilter === 'solved') return st === 'resolved';
+          if (statusFilter === 'unsolved') return st !== 'resolved';
+          return true;
+        });
+
+        if (visible.length === 0) {
+          $feed.innerHTML = '';
+          $empty.style.display = 'block';
+          return;
+        } else {
+          $empty.style.display = 'none';
+        }
+
+        const sorted = [...visible].sort((a, b) => {
+          if (sortMode === 'new') return new Date(b.createdAt) - new Date(a.createdAt);
+          if (sortMode === 'near') return new Date(b.createdAt) - new Date(a.createdAt);
+          if (b.score !== a.score) return b.score - a.score;
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
+        $feed.innerHTML = sorted.map(p => {
+          const tagged = (p.officials || []).join(', ');
+          const voted = votes.has(p._id);
+          const st = computeStatus(p);
+          const statusLabel = st === 'resolved' ? 'Solved' : st === 'in_progress' ? 'In progress' : 'Pending';
+          const imageUrl = p.image ? `${API_ORIGIN}${p.image}` : `${API_ORIGIN}/images/download.jpg`;
+          return `
+            <article class="card status-${st}" data-id="${p._id}" onclick="openPostDetail(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+              <div class="card-media">
+                <img src="${imageUrl}" alt="Posted issue" onerror="this.src='${API_ORIGIN}/images/download.jpg'; console.error('Failed to load image: ${imageUrl}')" />
+              </div>
+              <div class="card-body">
+                <h4 class="card-title">${escapeHtml(p.description)}</h4>
+                <div class="card-meta">
+                  <span class="chip"><i class="fa fa-location-dot"></i> ${escapeHtml(p.location)}</span>
+                  ${tagged ? `<span class="chip"><i class="fa fa-tag"></i> ${escapeHtml(tagged)}</span>` : ''}
+                  <span class="chip status">${statusLabel}</span>
+                  ${p.authorityViewed ? `<span class="chip viewed"><i class="fa fa-eye"></i> Authority viewed</span>` : ''}
+                  ${typeof p.views === 'number' ? `<span class="chip"><i class="fa fa-eye"></i> ${p.views} views</span>` : ''}
+                </div>
+                ${p.resolution && p.resolution.afterImage ? `
+                  <div class="resolution-images">
+                    <div class="image-comparison">
+                      <div>
+                        <h5>Before</h5>
+                        <img class="ba-img" src="${API_ORIGIN}${p.resolution.beforeImage || p.image || '/images/download.jpg'}" alt="before" onerror="console.error('Failed to load before image: ${API_ORIGIN}${p.resolution.beforeImage || p.image}')" />
+                      </div>
+                      <div>
+                        <h5>After</h5>
+                        <img class="ba-img" src="${p.resolution.afterImage.startsWith('/') ? API_ORIGIN + p.resolution.afterImage : API_ORIGIN + '/images/' + p.resolution.afterImage}" alt="after" onerror="console.error('Failed to load after image: ${API_ORIGIN}${p.resolution.afterImage}')" />
+                      </div>
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="card-footer">
+                <button class="vote ${voted ? 'voted' : ''}" data-action="vote">
+                  <i class="fa fa-thumbs-up"></i> Problematic <span>(${p.score})</span>
+                </button>
+                <span class="muted">${timeAgo(p.createdAt)}</span>
+              </div>
+            </article>
+          `;
+        }).join('');
+      } catch (error) {
+        console.error('Render error:', error.message);
+        $feed.innerHTML = '<div class="empty">Failed to load posts. Please try again.</div>';
+        $empty.style.display = 'block';
+      }
+    }
+
+    async function renderProfile() {
+      const user = await getUser();
+      if (!user) return;
+      try {
+        const res = await fetch(`${API_BASE}/posts`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}` }
+        });
+        if (!res.ok) throw new Error(`Posts fetch failed: ${await res.text()}`);
+        const posts = await res.json();
+        const votes = await getVotes(user.id);
+        $profileName.textContent = user.name || 'Citizen';
+        $profileEmail.textContent = user.email || 'citizen@example.com';
+        $statPosts.textContent = posts.filter(p => p.ownerId === user.id).length;
+        $statFlags.textContent = votes.size;
+        $statSolved.textContent = posts.filter(p => p.ownerId === user.id && computeStatus(p) === 'resolved').length;
+
+        $myPosts.innerHTML = posts.filter(p => p.ownerId === user.id).map(p => `
+          <div class="list-item">
+            <img class="thumb" src="${API_ORIGIN}${p.image || '/images/download.jpg'}" alt="${escapeHtml(p.description)}" onerror="console.error('Failed to load my post image: ${API_ORIGIN}${p.image || '/images/download.jpg'}')" />
+            <div>
+              <div>${escapeHtml(p.description)}</div>
+              <div class="mini">${escapeHtml(p.location)}</div>
+            </div>
+          </div>
+        `).join('');
+        $mySolved.innerHTML = posts.filter(p => p.ownerId === user.id && computeStatus(p) === 'resolved').map(p => `
+          <div class="list-item">
+            <img class="thumb" src="${API_ORIGIN}${p.image || '/images/download.jpg'}" alt="${escapeHtml(p.description)}" onerror="console.error('Failed to load solved image: ${API_ORIGIN}${p.image || '/images/download.jpg'}')" />
+            <div>
+              <div>${escapeHtml(p.description)}</div>
+              <div class="mini">${escapeHtml(p.location)}</div>
+            </div>
+          </div>
+        `).join('');
+        $myReactions.innerHTML = posts.filter(p => votes.has(p._id)).map(p => `
+          <div class="list-item">
+            <img class="thumb" src="${API_ORIGIN}${p.image || '/images/download.jpg'}" alt="${escapeHtml(p.description)}" onerror="console.error('Failed to load reaction image: ${API_ORIGIN}${p.image || '/images/download.jpg'}')" />
+            <div>
+              <div>${escapeHtml(p.description)}</div>
+              <div class="mini">${escapeHtml(p.location)}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Render profile error:', error.message);
+      }
+    }
+
+    function openPostDetail(post) {
+      const st = computeStatus(post);
+      const tagged = (post.officials || []).join(', ');
+      const imageUrl = post.image ? `${API_ORIGIN}${post.image}` : `${API_ORIGIN}/images/download.jpg`;
+      $detailBody.innerHTML = `
+        <div class="post-detail-header">
+          <img src="${imageUrl}" alt="Post image" onerror="this.src='${API_ORIGIN}/images/download.jpg'" />
+        </div>
+        <h3>${escapeHtml(post.description)}</h3>
+        <div class="post-meta">
+          <span><i class="fa fa-location-dot"></i> ${escapeHtml(post.location)}</span>
+          ${tagged ? `<span><i class="fa fa-tag"></i> ${escapeHtml(tagged)}</span>` : ''}
+          <span><i class="fa fa-thumbs-up"></i> ${typeof post.score === 'number' ? post.score : 0}</span>
+          <span><i class="fa fa-clock"></i> ${timeAgo(post.createdAt)}</span>
+        </div>
+        <div class="status-summary-inline">
+          <h4>Status Summary</h4>
+          <ul>
+            <li><strong>Current Status:</strong> <span class="status-${st}">${st.replace('_', ' ')}</span></li>
+            <li><strong>Views:</strong> ${typeof post.views === 'number' ? post.views : 0}</li>
+            <li><strong>Score:</strong> ${typeof post.score === 'number' ? post.score : 0}</li>
+            <li><strong>Authority Viewed:</strong> ${post.authorityViewed ? 'Yes' : 'No'}</li>
+          </ul>
+        </div>
+        ${post.resolution && post.resolution.afterImage ? `
+          <div class="resolution-images">
+            <h4>Resolution Images</h4>
+            <div class="image-comparison">
+              <div>
+                <h5>Before</h5>
+                <img src="${API_ORIGIN}${post.resolution.beforeImage || post.image || '/images/download.jpg'}" alt="Before" onerror="console.error('Failed to load before image')" />
+              </div>
+              <div>
+                <h5>After</h5>
+                <img src="${post.resolution.afterImage.startsWith('/') ? API_ORIGIN + post.resolution.afterImage : API_ORIGIN + '/images/' + post.resolution.afterImage}" alt="After" onerror="console.error('Failed to load after image')" />
+              </div>
+            </div>
+          </div>
+        ` : ''}
+      `;
+      $detailBackdrop.classList.add('show');
+      $detailBackdrop.setAttribute('aria-hidden', 'false');
+    }
+
+    $fab.addEventListener('click', () => {
+      $backdrop.classList.add('show');
+      $backdrop.setAttribute('aria-hidden', 'false');
+    });
+
+    $cancel.addEventListener('click', () => {
+      $backdrop.classList.remove('show');
+      $backdrop.setAttribute('aria-hidden', 'true');
+      $form.reset();
+      $preview.src = '';
+      $preview.style.display = 'none';
+    });
+
+    $cancelBtn.addEventListener('click', () => {
+      $backdrop.classList.remove('show');
+      $backdrop.setAttribute('aria-hidden', 'true');
+      $form.reset();
+      $preview.src = '';
+      $preview.style.display = 'none';
+    });
+
+    $image.addEventListener('change', () => {
+      const file = $image.files[0];
+      if (file) {
+        $preview.src = URL.createObjectURL(file);
+        $preview.style.display = 'block';
+        console.log('Previewing image:', file.name);
+      } else {
+        $preview.src = '';
+        $preview.style.display = 'none';
+      }
+    });
+
+    $form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const user = await getUser();
+      if (!user) return;
+      const formData = new FormData();
+      formData.append('description', $desc.value);
+      formData.append('location', $loc.value);
+      formData.append('officials', $officials.value);
+      formData.append('ownerId', user.id);
+      if ($image.files[0]) {
+        formData.append('image', $image.files[0]);
+        console.log('Uploading image:', $image.files[0].name);
+      }
+      try {
+        const res = await fetch(`${API_BASE}/posts`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}` },
+          body: formData
+        });
+        if (!res.ok) throw new Error(`Post creation failed: ${await res.text()}`);
+        console.log('Post created successfully');
+        $backdrop.classList.remove('show');
+        $backdrop.setAttribute('aria-hidden', 'true');
+        $form.reset();
+        $preview.src = '';
+        $preview.style.display = 'none';
+        await render();
+      } catch (error) {
+        console.error('Post creation error:', error.message);
+        alert('Failed to create post. Please try again.');
+      }
+    });
+
+    $feed.addEventListener('click', async e => {
+      const action = e.target.closest('[data-action]');
+      if (!action) return;
+      const postId = action.closest('[data-id]').dataset.id;
+      const user = await getUser();
+      if (!user) return;
+      if (action.dataset.action === 'vote') {
+        try {
+          const res = await fetch(`${API_BASE}/votes`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId: user.id, postId })
+          });
+          if (!res.ok) throw new Error(`Vote failed: ${await res.text()}`);
+          console.log('Vote processed for post:', postId);
+          await render();
+        } catch (error) {
+          console.error('Vote error:', error.message);
+        }
+      }
+    });
+
+    document.querySelectorAll('.filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        sortMode = btn.dataset.sort;
+        console.log('Sort mode changed:', sortMode);
+        render();
+      });
+    });
+
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        statusFilter = btn.dataset.status;
+        console.log('Status filter changed:', statusFilter);
+        render();
+      });
+    });
+
+    $profileBtn.addEventListener('click', () => {
+      $drawer.classList.add('show');
+      $drawerBackdrop.classList.add('show');
+      $drawer.setAttribute('aria-hidden', 'false');
+      renderProfile();
+    });
+
+    $logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('civiceye_token');
+      localStorage.removeItem('civiceye_user_v1');
+      window.location.href = 'Citizenlogin.html';
+    });
+
+    $closeDrawer.addEventListener('click', () => {
+      $drawer.classList.remove('show');
+      $drawerBackdrop.classList.remove('show');
+      $drawer.setAttribute('aria-hidden', 'true');
+    });
+
+    $detailClose.addEventListener('click', () => {
+      $detailBackdrop.classList.remove('show');
+      $detailBackdrop.setAttribute('aria-hidden', 'true');
+    });
+
+    $detailBackdrop.addEventListener('click', e => {
+      if (e.target === $detailBackdrop) {
+        $detailBackdrop.classList.remove('show');
+        $detailBackdrop.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    $drawerBackdrop.addEventListener('click', e => {
+      if (e.target === $drawerBackdrop) {
+        $drawer.classList.remove('show');
+        $drawerBackdrop.classList.remove('show');
+        $drawer.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      render();
+      renderProfile();
+    });
+  </script>
+
+  <style>
+    :root {
+      --bg: #2C2F33;
+      --card: #2C2F33;
+      --muted: #94a3b8;
+      --text: #FFF085;
+      --accent: #22c55e;
+      --danger: #ef4444;
+      --brand: #60a5fa;
+      --border: #1f2937;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #2C2F33, #1a1d21 100%);
+      color: var(--text);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: saturate(180%) blur(8px);
+      background: rgba(6, 7, 12, 0.6);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text);
+    }
+
+    .brand-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--brand), #994815);
+      color: white;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .profile-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #2C2F33;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.2s ease;
+    }
+
+    .profile-btn:hover {
+      background: #374151;
+    }
+
+    .avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #21c668, #1bd48a);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 16px auto 100px;
+      padding: 0 16px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter {
+      background: #2C2F33;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter.active {
+      color: var(--text);
+      border-color: #4b5563;
+      background: #374151;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 16px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      background: #2C2F33;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab.active {
+      color: var(--text);
+      border-color: #4b5563;
+      background: #374151;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: linear-gradient(180deg, #2C2F33, #1a1d21);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 20px rgba(2,6,23,0.3);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 24px rgba(0,0,0,0.6);
+    }
+
+    .card.status-pending {
+      background: linear-gradient(180deg, #1a1d21, #111318);
+      border-color: #0f1419;
+    }
+
+    .card.status-in_progress {
+      background: linear-gradient(180deg, #2C2F33, #1a1d21);
+      border: 2px solid #fbbf24;
+      box-shadow: 0 0 0 1px #fbbf24, 0 6px 20px rgba(251, 191, 36, 0.2);
+    }
+
+    .card.status-in_progress:hover {
+      box-shadow: 0 0 0 2px #f59e0b, 0 8px 24px rgba(251, 191, 36, 0.3);
+    }
+
+    .card.status-resolved {
+      background: linear-gradient(180deg, #064e3b, #052e16);
+      border: 2px solid #22c55e;
+      box-shadow: 0 0 0 1px #22c55e, 0 6px 20px rgba(34, 197, 94, 0.2);
+    }
+
+    .card.status-resolved:hover {
+      box-shadow: 0 0 0 2px #16a34a, 0 8px 24px rgba(34, 197, 94, 0.3);
+    }
+
+    .card-media {
+      padding: 8px;
+    }
+
+    .card-media img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #374151;
+    }
+
+    .card-body {
+      padding: 12px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      margin: 0 0 8px;
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 8px 0;
+    }
+
+    .chip {
+      font-size: 11px;
+      color: var(--muted);
+      background: #374151;
+      border: 1px solid #4b5563;
+      padding: 3px 8px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .chip.status {
+      color: #93c5fd;
+      border-color: #4b5563;
+    }
+
+    .chip.viewed {
+      color: #facc15;
+      border-color: #4b5563;
+    }
+
+    .resolution-images {
+      margin-top: 12px;
+    }
+
+    .image-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .image-comparison h5 {
+      margin: 0 0 4px 0;
+      text-align: center;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .image-comparison img {
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #4b5563;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-top: 1px solid #4b5563;
+    }
+
+    .vote {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #4b5563;
+      color: #fca5a5;
+      background: #374151;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .vote.voted {
+      color: #f87171;
+      border-color: #ef4444;
+      background: #1e293b;
+    }
+
+    .vote:hover {
+      background: #4b5563;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .fab {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #34d399, #22c55e);
+      color: #052e16;
+      font-weight: 900;
+      font-size: 24px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(34,197,94,0.3);
+      transition: transform 0.2s ease;
+    }
+
+    .fab:hover {
+      transform: translateY(-2px);
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: linear-gradient(180deg, #2C2F33, #1a1d21);
+      border: 1px solid #4b5563;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    }
+
+    .close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: bold;
+    }
+
+    .close:hover {
+      color: var(--text);
+    }
+
+    .modal h3 {
+      margin: 0 0 12px;
+      color: var(--text);
+      font-size: 18px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .row { grid-template-columns: 1fr; }
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: #374151;
+      color: var(--text);
+      border: 1px solid #4b5563;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .modal-actions {
+      margin-top: 16px;
+      text-align: right;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: 1px solid #4b5563;
+      background: #374151;
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #4b5563;
+      transform: translateY(-1px);
+    }
+
+    .btn.btn-primary {
+      background: var(--accent);
+      border-color: #16a34a;
+      color: #052e16;
+      font-weight: 700;
+    }
+
+    .btn.btn-primary:hover {
+      background: #16a34a;
+    }
+
+    .preview {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      background: #374151;
+      border: 1px dashed #4b5563;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .preview[src=""] {
+      display: none;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 16px;
+      border: 2px dashed #4b5563;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #2C2F33, #1a1d21);
+      font-size: 14px;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: -360px;
+      width: 360px;
+      max-width: 90vw;
+      height: 100vh;
+      transition: right 240ms ease;
+    }
+
+    .drawer.show {
+      right: 0;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .profile-stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+
+    .stat {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      background: #374151;
+      border: 1px solid #4b5563;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .list {
+      margin: 12px 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .list-item {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid #4b5563;
+      background: #374151;
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    .thumb {
+      width: 48px;
+      height: 36px;
+      object-fit: cover;
+      background: #374151;
+      border-radius: 6px;
+    }
+
+    .mini {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .post-detail-header img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .post-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .post-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-summary-inline {
+      display: none; /* Hidden on cards to reduce height */
+    }
+  </style>
+</body>
+</html>
