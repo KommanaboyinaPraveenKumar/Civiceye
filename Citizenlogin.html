@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Login</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #2C2F33;
+            color: #FFF085;
+            font-family: sans-serif;
+        }
+
+        form {
+            width: 300px;
+            padding: 20px;
+            border: 1px solid #7289DA;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #7289DA;
+            color: #FFF085;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        a {
+            color: #7289DA;
+        }
+    </style>
+</head>
+<body>
+    <h1>Citizen Login</h1>
+    <form action="">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username">
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password">
+
+        <button type="submit">Log in</button>
+    </form>
+
+    <p>Don't have an account? <a href="signup.html">Sign up</a></p>
+</body>
+</html>
