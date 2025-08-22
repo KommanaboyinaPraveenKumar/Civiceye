@@ -5,689 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Official Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-</head>
-<body>
-  <div class="container">
-    <!-- Header Component -->
-    <div class="dashboard-section" id="officialDashboard">
-      <div class="dashboard-header">
-        <h2><i class="fas fa-user-tie"></i> Government Official Dashboard</h2>
-        <div class="header-actions">
-          <div class="notification" onclick="document.getElementById('profileModal').classList.add('show')">
-            <i class="fa fa-bell"></i>
-            <span class="notif-dot" id="notifDot"></span>
-          </div>
-          <div class="profile" onclick="openProfileModal()">
-            <img id="profileAvatar" src="https://api.dicebear.com/7.x/bottts/png?seed=official&size=64&backgroundColor=b6e3f4" alt="Profile"/>
-          </div>
-          <button class="btn btn-logout" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i> Logout
-          </button>
-        </div>
-      </div>
-
-      <div class="dashboard-content">
-        <!-- Welcome Component -->
-        <div class="user-info-card">
-          <h3>Welcome, <span id="officialName">Loading...</span>!</h3>
-          <p class="muted">Manage citizen requests across your department.</p>
-          <div class="official-details">
-            <p><strong>Designation:</strong> <span id="officialDesignation">Loading...</span></p>
-            <p><strong>Department:</strong> <span id="officialDepartment">Loading...</span></p>
-          </div>
-        </div>
-
-        <!-- Controls Component -->
-        <div class="official-controls">
-          <div class="filters">
-            <label for="tagFilter">Filter by Department/Tag</label>
-            <select id="tagFilter">
-              <option value="all">All</option>
-              <option value="electricity">Electricity</option>
-              <option value="road">Road</option>
-              <option value="municipality">Municipality</option>
-              <option value="water">Water</option>
-              <option value="health">Health</option>
-              <option value="education">Education</option>
-              <option value="police">Police</option>
-            </select>
-            <button class="btn" onclick="applyFilter()">Apply Filter</button>
-            <button class="btn btn-secondary" onclick="clearFilter()">Clear Filter</button>
-          </div>
-          <div class="sorts">
-            <label for="sortBy">Sort by</label>
-            <select id="sortBy" onchange="renderPosts()">
-              <option value="recent">Most Recent</option>
-              <option value="likes">Most Liked</option>
-              <option value="unresolved">Unresolved First</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Top Most Liked Button -->
-        <div class="top-liked-section">
-          <button class="btn btn-primary" onclick="toggleTopLiked()">
-            <i class="fas fa-thumbs-up"></i> Top Most Liked
-          </button>
-        </div>
-
-        <!-- Posts Grid Component -->
-        <h3 class="grid-heading">Citizen Reports</h3>
-        <section class="posts-grid" id="postsList"></section>
-      </div>
-    </div>
-  </div>
-
-  <!-- Profile Modal -->
-  <div id="profileModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeProfileModal()">&times;</span>
-      <div class="profile-header">
-        <img id="profileModalAvatar" src="https://api.dicebear.com/7.x/bottts/png?seed=official&size=100&backgroundColor=b6e3f4" alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 20px;">
-        <h3>Official Profile</h3>
-      </div>
-      <div class="profile-details">
-        <p><strong>Name:</strong> <span id="profileName">Loading...</span></p>
-        <p><strong>Designation:</strong> <span id="profileDesignation">Loading...</span></p>
-        <p><strong>Department:</strong> <span id="profileDepartment">Loading...</span></p>
-        <p><strong>Posts Solved:</strong> <span id="postsSolvedCount">0</span></p>
-        <p><strong>Email:</strong> <span id="profileEmail">Loading...</span></p>
-        <p><strong>Phone:</strong> <span id="profilePhone">Loading...</span></p>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-primary" onclick="logout()">Logout</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Post Detail Modal -->
-  <div id="postModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closePostModal()">&times;</span>
-      <div id="postDetail"></div>
-      <div class="status-update">
-        <h4>Update Status</h4>
-        <select id="postStatusSelect" onchange="handleStatusChange()">
-          <option value="new">New</option>
-          <option value="in_progress">In Progress</option>
-          <option value="solved">Solved</option>
-        </select>
-      </div>
-      <div class="modal-actions" id="postActions"></div>
-    </div>
-  </div>
-
-  <!-- Resolution Modal -->
-  <div id="resolutionModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeResolutionModal()">&times;</span>
-      <h3>Mark as Solved</h3>
-      <p>Upload a picture of the completed work:</p>
-      <input type="file" id="resolutionImage" accept="image/*" required style="background: #374151; color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 8px; width: 100%;">
-      <div class="modal-actions">
-        <button type="button" class="btn" onclick="closeResolutionModal()">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="submitResolution()">Submit Resolution</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Post Tracking Modal -->
-  <div id="trackingModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeTrackingModal()">&times;</span>
-      <h3>Post Tracking</h3>
-      <div id="trackingContent"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn" onclick="closeTrackingModal()">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Progress Modal -->
-  <div id="progressModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeProgressModal()">&times;</span>
-      <h3>Update Status</h3>
-      <p>This work is now in progress and will be completed in <strong>10 working days</strong>.</p>
-      <div class="modal-actions">
-        <button class="btn btn-primary" onclick="updatePostProgress('in_progress')">Confirm</button>
-        <button class="btn" onclick="closeProgressModal()">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Finished Modal -->
-  <div id="finishedModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeFinishedModal()">&times;</span>
-      <h3>Mark as Finished</h3>
-      <p>Upload a picture of the completed work:</p>
-      <input type="file" id="finishedImage" accept="image/*">
-      <div class="modal-actions">
-        <button class="btn btn-primary" onclick="confirmFinished()">Submit</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const API_BASE = 'http://localhost:3000/api';
-    const API_ORIGIN = API_BASE.replace(/\/api$/, '');
-
-    function escapeHtml(text) {
-      return (text || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function computeStatus(p) {
-      if (p.citizenConfirmed || (p.resolution && p.resolution.afterImage)) return 'solved';
-      if (p.resolution && p.resolution.awaitingCitizenConfirmation) return 'in_progress';
-      return 'new';
-    }
-
-    function timeAgo(date) {
-      const now = new Date();
-      const seconds = Math.floor((now - new Date(date)) / 1000);
-      let interval = Math.floor(seconds / 31536000);
-      if (interval >= 1) return interval + ' year' + (interval === 1 ? '' : 's') + ' ago';
-      interval = Math.floor(seconds / 2592000);
-      if (interval >= 1) return interval + ' month' + (interval === 1 ? '' : 's') + ' ago';
-      interval = Math.floor(seconds / 86400);
-      if (interval >= 1) return interval + ' day' + (interval === 1 ? '' : 's') + ' ago';
-      interval = Math.floor(seconds / 3600);
-      if (interval >= 1) return interval + ' hour' + (interval === 1 ? '' : 's') + ' ago';
-      interval = Math.floor(seconds / 60);
-      if (interval >= 1) return interval + ' minute' + (interval === 1 ? '' : 's') + ' ago';
-      return 'just now';
-    }
-
-    let currentPost = null;
-    let resolutionPost = null;
-    let currentFilter = 'all';
-    let currentSort = 'recent';
-
-    async function getUser() {
-      try {
-        const token = localStorage.getItem('civiceye_token');
-        if (!token) return null;
-        const response = await fetch(`${API_BASE}/me`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          return await response.json();
-        } else {
-          console.error('Failed to fetch user:', response.status);
-          return null;
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        return null;
-      }
-    }
-
-    async function loadOfficialDetails() {
-      try {
-        const user = await getUser();
-        if (!user) return;
-        document.getElementById('officialName').textContent = user.name || 'Official';
-        document.getElementById('officialDesignation').textContent = user.designation || user.role || 'Not specified';
-        document.getElementById('officialDepartment').textContent = user.department || user.role || 'Not specified';
-        document.getElementById('profileName').textContent = user.name || 'Official';
-        document.getElementById('profileDesignation').textContent = user.designation || user.role || 'Not specified';
-        document.getElementById('profileDepartment').textContent = user.department || user.role || 'Not specified';
-        document.getElementById('profileEmail').textContent = user.email || 'Not specified';
-        document.getElementById('profilePhone').textContent = user.phone || 'Not specified';
-        document.getElementById('postsSolvedCount').textContent = user.postsSolved || 0;
-        console.log('Official details loaded:', user);
-      } catch (error) {
-        console.error('Failed to load official details:', error);
-      }
-    }
-
-    function starsHtml(rating) {
-      const full = '★'.repeat(rating);
-      const empty = '☆'.repeat(5 - rating);
-      return `<span class="stars">${full}${empty}</span>`;
-    }
-
-    function applyFilter() {
-      currentFilter = document.getElementById('tagFilter').value;
-      console.log('Filter applied:', currentFilter);
-      renderPosts();
-    }
-
-    function clearFilter() {
-      document.getElementById('tagFilter').value = 'all';
-      currentFilter = 'all';
-      console.log('Filter cleared');
-      renderPosts();
-    }
-
-    function toggleTopLiked() {
-      currentSort = 'likes';
-      document.getElementById('sortBy').value = 'likes';
-      renderPosts();
-    }
-
-    async function updatePostProgress(newStatus) {
-      if (!currentPost) return;
-      try {
-        let endpoint;
-        let body = {};
-        if (newStatus === 'in_progress') {
-          endpoint = `/posts/${currentPost._id}/mark-progress`;
-        } else if (newStatus === 'solved') {
-          resolutionPost = currentPost;
-          closePostModal();
-          document.getElementById('resolutionModal').classList.add('show');
-          return;
-        } else {
-          endpoint = `/posts/${currentPost._id}/reset`;
-        }
-        const response = await fetch(`${API_BASE}${endpoint}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
-        });
-        if (response.ok) {
-          updatePostStatusInUI(currentPost._id, newStatus);
-          const postElement = document.getElementById(`post-${currentPost._id}`);
-          if (postElement) {
-            postElement.classList.remove('status-new', 'status-in_progress', 'status-solved');
-            postElement.classList.add(`status-${newStatus}`);
-            if (newStatus === 'in_progress') {
-              postElement.style.border = '2px solid #fbbf24';
-              postElement.style.boxShadow = '0 0 0 1px #fbbf24, 0 8px 30px rgba(251, 191, 36, 0.3)';
-            } else if (newStatus === 'solved') {
-              postElement.style.border = '2px solid #22c55e';
-              postElement.style.boxShadow = '0 0 0 1px #22c55e, 0 8px 30px rgba(34, 197, 94, 0.3)';
-            }
-          }
-          closePostModal();
-          closeProgressModal();
-          await renderPosts();
-        } else {
-          throw new Error('Failed to update status');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    }
-
-    async function submitResolution() {
-      const file = document.getElementById('resolutionImage').files[0];
-      if (!file) {
-        console.log('No image selected');
-        return;
-      }
-      if (!resolutionPost) {
-        console.log('Error: No post selected for resolution.');
-        return;
-      }
-      try {
-        const formData = new FormData();
-        formData.append('afterImage', file);
-        formData.append('postId', resolutionPost._id);
-        const res = await fetch(`${API_BASE}/posts/${resolutionPost._id}/resolve`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}` },
-          body: formData
-        });
-        const responseData = await res.json();
-        console.log('Resolution response:', responseData);
-        if (!res.ok) throw new Error(responseData.message || 'Failed to submit resolution');
-        updatePostStatusInUI(resolutionPost._id, 'solved');
-        const postElement = document.getElementById(`post-${resolutionPost._id}`);
-        if (postElement) {
-          postElement.classList.remove('status-new', 'status-in_progress');
-          postElement.classList.add('status-solved');
-          postElement.style.border = '2px solid #22c55e';
-          postElement.style.boxShadow = '0 0 0 1px #22c55e, 0 8px 30px rgba(34, 197, 94, 0.3)';
-        }
-        if (currentPost && currentPost._id === resolutionPost._id) {
-          currentPost = responseData.post || currentPost;
-          currentPost.resolution = { afterImage: `/uploads/${file.name}` };
-        }
-        closeResolutionModal();
-        await renderPosts();
-      } catch (error) {
-        console.error('Resolution error:', error);
-      }
-    }
-
-    function updatePostStatusInUI(postId, newStatus) {
-      const postElement = document.getElementById(`post-${postId}`);
-      if (postElement) {
-        const statusBadge = postElement.querySelector('.badge');
-        if (statusBadge) {
-          statusBadge.textContent = newStatus.replace('_', ' ');
-          statusBadge.className = `badge badge-${newStatus}`;
-        }
-        postElement.classList.remove('status-new', 'status-in_progress', 'status-solved');
-        postElement.classList.add(`status-${newStatus}`);
-      }
-    }
-
-    function handleStatusChange() {
-      const newStatus = document.getElementById('postStatusSelect').value;
-      updatePostProgress(newStatus);
-    }
-
-    function showPostTracking(post) {
-      const trackingContent = document.getElementById('trackingContent');
-      const status = computeStatus(post);
-      let trackingHtml = `
-        <div class="tracking-timeline">
-          <div class="timeline-item ${status === 'new' ? 'active' : ''}">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <h4>Post Created</h4>
-              <p>Citizen reported issue on ${new Date(post.createdAt).toLocaleDateString()}</p>
-              <span class="time">${timeAgo(post.createdAt)}</span>
-            </div>
-          </div>
-          <div class="timeline-item ${status === 'in_progress' || status === 'solved' ? 'active' : ''}">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <h4>In Progress</h4>
-              <p>Official marked work as in progress</p>
-              <span class="time">${post.resolution?.awaitingCitizenConfirmation ? 'Recently updated' : 'Not started'}</span>
-            </div>
-          </div>
-          <div class="timeline-item ${status === 'solved' ? 'active' : ''}">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <h4>Completed</h4>
-              <p>Work finished and resolution submitted</p>
-              <span class="time">${post.resolution?.afterImage ? 'Recently completed' : 'Pending'}</span>
-            </div>
-          </div>
-        </div>
-        <div class="tracking-stats">
-          <div class="stat-item">
-            <strong>Current Status:</strong> <span class="status-${status}">${status.replace('_', ' ')}</span>
-          </div>
-          <div class="stat-item">
-            <strong>Views:</strong> ${typeof post.views === 'number' ? post.views : 0}
-          </div>
-          <div class="stat-item">
-            <strong>Score:</strong> ${typeof post.score === 'number' ? post.score : 0}
-          </div>
-          <div class="stat-item">
-            <strong>Authority Viewed:</strong> ${post.authorityViewed ? 'Yes' : 'No'}
-          </div>
-        </div>
-      `;
-      if (post.resolution?.afterImage) {
-        const afterImageUrl = post.resolution.afterImage.startsWith('/')
-          ? `${API_ORIGIN}${post.resolution.afterImage}`
-          : `${API_ORIGIN}/images/${post.resolution.afterImage}`;
-        trackingHtml += `
-          <div class="resolution-images">
-            <h4>Resolution Images</h4>
-            <div class="image-comparison">
-              <div>
-                <h5>Before</h5>
-                <img src="${API_ORIGIN}${post.image || '/images/download.jpg'}" alt="Before" />
-              </div>
-              <div>
-                <h5>After</h5>
-                <img src="${afterImageUrl}" alt="After" onerror="this.src='${API_ORIGIN}/images/download.jpg'" />
-              </div>
-            </div>
-          </div>
-        `;
-      }
-      trackingContent.innerHTML = trackingHtml;
-      document.getElementById("trackingModal").classList.add('show');
-    }
-
-    function openPostDetail(post) {
-      currentPost = post;
-      const detail = document.getElementById('postDetail');
-      const actions = document.getElementById('postActions');
-      const statusSelect = document.getElementById('postStatusSelect');
-      const status = computeStatus(post);
-      detail.innerHTML = `
-        <div class="post-detail-header">
-          <img src="${post.image ? API_ORIGIN + post.image : API_ORIGIN + '/images/download.jpg'}" 
-               alt="Post image" />
-        </div>
-        <h3>${escapeHtml(post.description)}</h3>
-        <div class="post-meta">
-          <span><i class="fa fa-location-dot"></i> ${escapeHtml(post.location || '')}</span>
-          <span><i class="fa fa-tag"></i> ${(post.officials && post.officials.length) ? post.officials.join(', ') : 'general'}</span>
-          <span><i class="fa fa-thumbs-up"></i> ${typeof post.score === 'number' ? post.score : 0}</span>
-          <span><i class="fa fa-clock"></i> ${timeAgo(post.createdAt)}</span>
-        </div>
-        <div class="status-summary-inline">
-          <h4>Status Summary</h4>
-          <ul>
-            <li><strong>Current Status:</strong> ${status.replace('_', ' ')}</li>
-            <li><strong>Views:</strong> ${typeof post.views === 'number' ? post.views : 0}</li>
-            <li><strong>Score:</strong> ${typeof post.score === 'number' ? post.score : 0}</li>
-          </ul>
-        </div>
-        ${post.resolution?.afterImage ? `
-          <div class="resolution-images">
-            <h4>Resolution Images</h4>
-            <div class="image-comparison">
-              <div>
-                <h5>Before</h5>
-                <img src="${API_ORIGIN}${post.image || '/images/download.jpg'}" alt="Before" />
-              </div>
-              <div>
-                <h5>After</h5>
-                <img src="${post.resolution.afterImage.startsWith('/') ? API_ORIGIN + post.resolution.afterImage : API_ORIGIN + '/images/' + post.resolution.afterImage}" alt="After" onerror="this.src='${API_ORIGIN}/images/download.jpg'" />
-              </div>
-            </div>
-          </div>
-        ` : ''}
-      `;
-      statusSelect.value = status;
-      actions.innerHTML = `
-        <button class="btn btn-secondary" onclick="showPostTracking(${JSON.stringify(post).replace(/"/g, '&quot;')})">
-          <i class="fa fa-eye"></i> View Progress
-        </button>
-      `;
-      document.getElementById('postModal').classList.add('show');
-    }
-
-    function markInProgress() {
-      if (!currentPost) return;
-      updatePostProgress('in_progress');
-    }
-
-    function markFinished() {
-      if (!currentPost) return;
-      resolutionPost = currentPost;
-      closePostModal();
-      document.getElementById('resolutionModal').classList.add('show');
-    }
-
-    function closePostModal() { 
-      document.getElementById("postModal").classList.remove('show'); 
-      currentPost = null;
-    }
-
-    function closeProgressModal() { 
-      document.getElementById("progressModal").classList.remove('show'); 
-    }
-
-    function closeResolutionModal() { 
-      document.getElementById("resolutionModal").classList.remove('show');
-      document.getElementById('resolutionImage').value = '';
-      resolutionPost = null;
-    }
-
-    function closeTrackingModal() { 
-      document.getElementById("trackingModal").classList.remove('show'); 
-    }
-
-    function closeFinishedModal() { 
-      document.getElementById("finishedModal").classList.remove('show'); 
-      document.getElementById('finishedImage').value = '';
-    }
-
-    async function confirmFinished() {
-      const file = document.getElementById('finishedImage').files[0];
-      if (!file) {
-        console.log('No image selected');
-        return;
-      }
-      if (!currentPost) {
-        console.log('Error: No post selected for resolution.');
-        return;
-      }
-      try {
-        const formData = new FormData();
-        formData.append('afterImage', file);
-        formData.append('postId', currentPost._id);
-        const res = await fetch(`${API_BASE}/posts/${currentPost._id}/resolve`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}` },
-          body: formData
-        });
-        const responseData = await res.json();
-        if (!res.ok) throw new Error(responseData.message || 'Failed to submit resolution');
-        updatePostStatusInUI(currentPost._id, 'solved');
-        const postElement = document.getElementById(`post-${currentPost._id}`);
-        if (postElement) {
-          postElement.classList.remove('status-new', 'status-in_progress');
-          postElement.classList.add('status-solved');
-          postElement.style.border = '2px solid #22c55e';
-          postElement.style.boxShadow = '0 0 0 1px #22c55e, 0 8px 30px rgba(34, 197, 94, 0.3)';
-        }
-        currentPost.resolution = { afterImage: `/uploads/${file.name}` };
-        closeFinishedModal();
-        await renderPosts();
-      } catch (error) {
-        console.error('Resolution error:', error);
-      }
-    }
-
-    function openProfileModal() { 
-      document.getElementById("profileModal").classList.add('show'); 
-    }
-
-    function closeProfileModal() { 
-      document.getElementById("profileModal").classList.remove('show'); 
-    }
-
-    async function renderPosts() {
-      const postsList = document.getElementById('postsList');
-      postsList.innerHTML = '';
-      try {
-        const res = await fetch(`${API_BASE}/posts?cacheBust=${Date.now()}`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}` }
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const posts = await res.json();
-        if (!Array.isArray(posts) || posts.length === 0) {
-          postsList.innerHTML = '<div class="empty">No posts yet.</div>';
-          return;
-        }
-        let filteredPosts = posts;
-        if (currentFilter !== 'all') {
-          filteredPosts = posts.filter(p => {
-            const officials = p.officials || [];
-            return officials.some(official => 
-              official.toLowerCase().includes(currentFilter.toLowerCase())
-            );
-          });
-        }
-        if (currentSort === 'recent') {
-          filteredPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        } else if (currentSort === 'likes') {
-          filteredPosts.sort((a, b) => (b.score || 0) - (a.score || 0));
-        } else if (currentSort === 'unresolved') {
-          filteredPosts.sort((a, b) => {
-            const aStatus = computeStatus(a);
-            const bStatus = computeStatus(b);
-            if (aStatus === 'new' && bStatus !== 'new') return -1;
-            if (aStatus === 'in_progress' && bStatus === 'solved') return -1;
-            return 0;
-          });
-        }
-        if (filteredPosts.length === 0) {
-          postsList.innerHTML = '<div class="empty">No posts match the selected filter.</div>';
-          return;
-        }
-        const html = filteredPosts.map(p => {
-          const status = computeStatus(p);
-          const badgeClass = status === 'solved' ? 'badge-solved' : status === 'in_progress' ? 'badge-in_progress' : 'badge-new';
-          const imageUrl = p.image ? `${API_ORIGIN}${p.image}` : `${API_ORIGIN}/images/download.jpg`;
-          const tag = (p.officials && p.officials.length) ? p.officials[0] : 'general';
-          const rating = Math.min(5, Math.max(1, Math.round(((p.score || 0) % 10) / 2)));
-          const hasProgress = status === 'in_progress' || status === 'solved';
-          return `
-            <article class="product-card status-${status}" id="post-${p._id}" onclick="openPostDetail(${JSON.stringify(p).replace(/"/g, '&quot;')})" style="cursor: pointer;">
-              <div class="thumb">
-                <img src="${imageUrl}" alt="Post image" onerror="this.src='${API_ORIGIN}/images/download.jpg'" />
-              </div>
-              <div class="pc-body">
-                <h4 class="pc-title">${escapeHtml(p.description)}</h4>
-                <div class="pc-row rating">
-                  ${starsHtml(rating)}
-                  <span class="count">${typeof p.score === 'number' ? p.score : 0}</span>
-                  ${hasProgress ? '<span class="progress-tick">✅</span>' : ''}
-                </div>
-                <div class="pc-row meta">
-                  <span class="chip">${escapeHtml(tag)}</span>
-                  <span class="chip">${escapeHtml(p.location || '')}</span>
-                  <span class="badge ${badgeClass}">${status.replace('_',' ')}</span>
-                </div>
-                <div class="pc-row subtle">${timeAgo(p.createdAt)}</div>
-              </div>
-            </article>
-          `;
-        }).join('');
-        postsList.innerHTML = html;
-      } catch (e) {
-        postsList.innerHTML = '<div class="empty">Failed to load posts.</div>';
-        console.error('Official posts load error:', e);
-      }
-    }
-
-    function logout() {
-      localStorage.removeItem('civiceye_token');
-      localStorage.removeItem('civiceye_user_v1');
-      localStorage.removeItem('civiceye_userId');
-      window.location.href = 'index.html';
-    }
-
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('modal') && e.target.classList.contains('show')) {
-        e.target.classList.remove('show');
-        if (e.target.id === 'postModal') {
-          currentPost = null;
-        } else if (e.target.id === 'resolutionModal') {
-          document.getElementById('resolutionImage').value = '';
-          resolutionPost = null;
-        } else if (e.target.id === 'finishedModal') {
-          document.getElementById('finishedImage').value = '';
-        }
-      }
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadOfficialDetails();
-      renderPosts();
-    });
-  </script>
-
-  <style>
+    <style>
     :root {
-      --bg: #2C2F33;
-      --card: #2C2F33;
+      --bg: #2C2F33; 
+      --card: #2C2F33; 
       --muted: #94a3b8;
-      --text: #FFF085;
+      --text: #FFF085; 
       --accent: #22c55e;
       --danger: #ef4444;
       --brand: #60a5fa;
@@ -731,29 +54,6 @@
       display: flex;
       align-items: center;
       gap: 16px;
-    }
-
-    .notification {
-      position: relative;
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 50%;
-      transition: background-color 0.2s ease;
-    }
-
-    .notification:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .notif-dot {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 8px;
-      height: 8px;
-      background: var(--danger);
-      border-radius: 50%;
-      border: 1px solid #fff;
     }
 
     .profile {
@@ -813,10 +113,6 @@
       background: #6b7280;
       border-color: #4b5563;
       color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #4b5563;
     }
 
     .user-info-card {
@@ -1324,6 +620,587 @@
       border-radius: 8px;
       border: 1px solid var(--border);
     }
-  </style>
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="dashboard-section" id="officialDashboard">
+      <div class="dashboard-header">
+        <h2><i class="fas fa-user-tie"></i> Government Official Dashboard</h2>
+        <div class="header-actions">
+          <div class="profile" onclick="openProfileModal()">
+            <img id="profileAvatar" src="https://api.dicebear.com/7.x/bottts/png?seed=official&size=64&backgroundColor=b6e3f4" alt="Profile"/>
+          </div>
+          <button class="btn btn-logout" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+
+      <div class="dashboard-content">
+        <div class="user-info-card">
+          <h3>Welcome, <span id="officialName">Loading...</span>!</h3>
+          <p class="muted">Manage citizen requests across your department.</p>
+          <div class="official-details">
+            <p><strong>Designation:</strong> <span id="officialDesignation">Loading...</span></p>
+            <p><strong>Department:</strong> <span id="officialDepartment">Loading...</span></p>
+          </div>
+        </div>
+
+        <div class="official-controls">
+          <div class="filters">
+            <label for="tagFilter">Filter by Department/Tag</label>
+            <select id="tagFilter">
+              <option value="all">All</option>
+              <option value="electricity">Electricity</option>
+              <option value="road">Road</option>
+              <option value="municipality">Municipality</option>
+              <option value="water">Water</option>
+              <option value="health">Health</option>
+              <option value="education">Education</option>
+              <option value="police">Police</option>
+            </select>
+            <button class="btn" onclick="applyFilter()">Apply Filter</button>
+            <button class="btn btn-secondary" onclick="clearFilter()">Clear Filter</button>
+          </div>
+          <div class="sorts">
+            <label for="sortBy">Sort by</label>
+            <select id="sortBy" onchange="renderPosts()">
+              <option value="recent">Most Recent</option>
+              <option value="likes">Most Liked</option>
+              <option value="unresolved">Unresolved First</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="top-liked-section">
+          <button class="btn btn-primary" onclick="toggleTopLiked()">
+            <i class="fas fa-thumbs-up"></i> Top Most Liked
+          </button>
+        </div>
+
+        <h3 class="grid-heading">Citizen Reports</h3>
+        <section class="posts-grid" id="postsList"></section>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeProfileModal()">&times;</span>
+      <div class="profile-header">
+        <img id="profileModalAvatar" src="https://api.dicebear.com/7.x/bottts/png?seed=official&size=100&backgroundColor=b6e3f4" alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 20px;">
+        <h3>Official Profile</h3>
+      </div>
+      <div class="profile-details" id="profileDetails">
+        <p><strong>Name:</strong> <span id="profileName">Loading...</span></p>
+        <p><strong>Designation:</strong> <span id="profileDesignation">Loading...</span></p>
+        <p><strong>Department:</strong> <span id="profileDepartment">Loading...</span></p>
+        <p><strong>Posts Solved:</strong> <span id="postsSolvedCount">0</span></p>
+        <p><strong>Email:</strong> <span id="profileEmail">Loading...</span></p>
+        <p><strong>Phone:</strong> <span id="profilePhone">Loading...</span></p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="postModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closePostModal()">&times;</span>
+      <div id="postDetail"></div>
+      <div class="status-update">
+        <h4>Update Status</h4>
+        <select id="postStatusSelect" onchange="handleStatusChange()">
+          <option value="new">New</option>
+          <option value="in_progress">In Progress</option>
+          <option value="solved">Solved</option>
+        </select>
+      </div>
+      <div class="modal-actions" id="postActions"></div>
+    </div>
+  </div>
+
+  <div id="resolutionModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeResolutionModal()">&times;</span>
+      <h3>Mark as Solved</h3>
+      <p>Upload a picture of the completed work:</p>
+      <input type="file" id="resolutionImage" accept="image/*" required style="background: #374151; color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 8px; width: 100%;">
+      <div class="modal-actions">
+        <button type="button" class="btn" onclick="closeResolutionModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitResolution()">Submit Resolution</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="trackingModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeTrackingModal()">&times;</span>
+      <h3>Post Tracking</h3>
+      <div id="trackingContent"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn" onclick="closeTrackingModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="progressModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeProgressModal()">&times;</span>
+      <h3>Update Status</h3>
+      <p>This work is now in progress and will be completed in <strong>10 working days</strong>.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="updatePostProgress('in_progress')">Confirm</button>
+        <button class="btn" onclick="closeProgressModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000/api';
+    const API_ORIGIN = API_BASE.replace(/\/api$/, '');
+
+    function escapeHtml(text) {
+      return (text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function computeStatus(p) {
+      if (p.citizenConfirmed || (p.resolution && p.resolution.afterImage)) return 'solved';
+      if (p.resolution && p.resolution.awaitingCitizenConfirmation) return 'in_progress';
+      return 'new';
+    }
+
+    function timeAgo(date) {
+      const now = new Date();
+      const seconds = Math.floor((now - new Date(date)) / 1000);
+      let interval = Math.floor(seconds / 31536000);
+      if (interval >= 1) return interval + ' year' + (interval === 1 ? '' : 's') + ' ago';
+      interval = Math.floor(seconds / 2592000);
+      if (interval >= 1) return interval + ' month' + (interval === 1 ? '' : 's') + ' ago';
+      interval = Math.floor(seconds / 86400);
+      if (interval >= 1) return interval + ' day' + (interval === 1 ? '' : 's') + ' ago';
+      interval = Math.floor(seconds / 3600);
+      if (interval >= 1) return interval + ' hour' + (interval === 1 ? '' : 's') + ' ago';
+      interval = Math.floor(seconds / 60);
+      if (interval >= 1) return interval + ' minute' + (interval === 1 ? '' : 's') + ' ago';
+      return 'just now';
+    }
+
+    let currentPost = null;
+    let resolutionPost = null;
+    let currentFilter = 'all';
+    let currentSort = 'recent';
+
+    async function getUser() {
+      try {
+        const token = localStorage.getItem('civiceye_token');
+        if (!token) return null;
+        const response = await fetch(`${API_BASE}/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          return await response.json();
+        } else {
+          console.error('Failed to fetch user:', response.status);
+          return null;
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        return null;
+      }
+    }
+
+    async function loadOfficialDetails() {
+      try {
+        const user = await getUser();
+        if (!user) return;
+        document.getElementById('officialName').textContent = user.name || 'Official';
+        document.getElementById('officialDesignation').textContent = user.designation || user.role || 'Not specified';
+        document.getElementById('officialDepartment').textContent = user.department || user.role || 'Not specified';
+        document.getElementById('profileName').textContent = user.name || 'Official';
+        document.getElementById('profileDesignation').textContent = user.designation || user.role || 'Not specified';
+        document.getElementById('profileDepartment').textContent = user.department || user.role || 'Not specified';
+        document.getElementById('profileEmail').textContent = user.email || 'Not specified';
+        document.getElementById('profilePhone').textContent = user.phone || 'Not specified';
+        document.getElementById('postsSolvedCount').textContent = user.postsSolved || 0;
+        console.log('Official details loaded:', user);
+      } catch (error) {
+        console.error('Failed to load official details:', error);
+      }
+    }
+
+    function starsHtml(rating) {
+      const full = '★'.repeat(rating);
+      const empty = '☆'.repeat(5 - rating);
+      return `<span class="stars">${full}${empty}</span>`;
+    }
+
+    function applyFilter() {
+      currentFilter = document.getElementById('tagFilter').value;
+      console.log('Filter applied:', currentFilter);
+      renderPosts();
+    }
+
+    function clearFilter() {
+      document.getElementById('tagFilter').value = 'all';
+      currentFilter = 'all';
+      console.log('Filter cleared');
+      renderPosts();
+    }
+
+    function toggleTopLiked() {
+      currentSort = 'likes';
+      document.getElementById('sortBy').value = 'likes';
+      renderPosts();
+    }
+
+    async function updatePostProgress(newStatus) {
+      if (!currentPost) return;
+      try {
+        let endpoint;
+        let body = {};
+        if (newStatus === 'in_progress') {
+          endpoint = `/posts/${currentPost._id}/mark-progress`;
+        } else if (newStatus === 'solved') {
+          resolutionPost = currentPost;
+          closePostModal();
+          document.getElementById('resolutionModal').classList.add('show');
+          return;
+        } else {
+          endpoint = `/posts/${currentPost._id}/reset`;
+        }
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+        if (response.ok) {
+          alert(`Post marked as ${newStatus.replace('_', ' ')}!`);
+          closePostModal();
+          closeProgressModal();
+          await renderPosts();
+        } else {
+          throw new Error('Failed to update status');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert(`Failed to update status: ${error.message}`);
+      }
+    }
+
+    async function submitResolution() {
+      const file = document.getElementById('resolutionImage').files[0];
+      if (!file) {
+        alert('Please upload an image of the completed work.');
+        return;
+      }
+      if (!resolutionPost) {
+        alert('Error: No post selected for resolution.');
+        return;
+      }
+      try {
+        const formData = new FormData();
+        formData.append('afterImage', file);
+        formData.append('postId', resolutionPost._id);
+        const res = await fetch(`${API_BASE}/posts/${resolutionPost._id}/resolve`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}` },
+          body: formData
+        });
+        let responseData;
+        try {
+          responseData = await res.json();
+        } catch (err) {
+          const text = await res.text();
+          throw new Error('Unexpected server response (not JSON):\n' + text.slice(0, 300));
+        }
+        console.log('Resolution response:', responseData);
+        if (!res.ok) throw new Error(responseData.message || 'Failed to submit resolution');
+        alert('Resolution submitted successfully!');
+        closeResolutionModal();
+        if (currentPost && currentPost._id === resolutionPost._id) {
+          currentPost = responseData.post || currentPost;
+        }
+        await renderPosts();
+      } catch (error) {
+        console.error('Resolution error:', error);
+        alert('Failed to submit resolution: ' + error.message);
+      }
+    }
+
+    function handleStatusChange() {
+      const newStatus = document.getElementById('postStatusSelect').value;
+      if (newStatus === 'in_progress') {
+        document.getElementById('progressModal').classList.add('show');
+      } else if (newStatus === 'solved') {
+        updatePostProgress('solved');
+      } else {
+        updatePostProgress(newStatus);
+      }
+    }
+
+    function showPostTracking(post) {
+      const trackingContent = document.getElementById('trackingContent');
+      const status = computeStatus(post);
+      console.log('Post status:', status, 'Resolution:', post.resolution);
+      let trackingHtml = `
+        <div class="tracking-timeline">
+          <div class="timeline-item ${status === 'new' ? 'active' : ''}">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h4>Post Created</h4>
+              <p>Citizen reported issue on ${new Date(post.createdAt).toLocaleDateString()}</p>
+              <span class="time">${timeAgo(post.createdAt)}</span>
+            </div>
+          </div>
+          <div class="timeline-item ${status === 'in_progress' || status === 'solved' ? 'active' : ''}">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h4>In Progress</h4>
+              <p>Official marked work as in progress</p>
+              <span class="time">${post.resolution?.awaitingCitizenConfirmation ? 'Recently updated' : 'Not started'}</span>
+            </div>
+          </div>
+          <div class="timeline-item ${status === 'solved' ? 'active' : ''}">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <h4>Completed</h4>
+              <p>Work finished and resolution submitted</p>
+              <span class="time">${post.resolution?.afterImage ? 'Recently completed' : 'Pending'}</span>
+            </div>
+          </div>
+        </div>
+        <div class="tracking-stats">
+          <div class="stat-item">
+            <strong>Current Status:</strong> <span class="status-${status}">${status.replace('_', ' ')}</span>
+          </div>
+          <div class="stat-item">
+            <strong>Views:</strong> ${typeof post.views === 'number' ? post.views : 0}
+          </div>
+          <div class="stat-item">
+            <strong>Score:</strong> ${typeof post.score === 'number' ? post.score : 0}
+          </div>
+          <div class="stat-item">
+            <strong>Authority Viewed:</strong> ${post.authorityViewed ? 'Yes' : 'No'}
+          </div>
+        </div>
+      `;
+      if (post.resolution?.afterImage) {
+        const afterImageUrl = post.resolution.afterImage.startsWith('/')
+          ? `${API_ORIGIN}${post.resolution.afterImage}`
+          : `${API_ORIGIN}/images/${post.resolution.afterImage}`;
+        console.log('Resolution image URL:', afterImageUrl);
+        trackingHtml += `
+          <div class="resolution-images">
+            <h4>Resolution Images</h4>
+            <div class="image-comparison">
+              <div>
+                <h5>Before</h5>
+                <img src="${API_ORIGIN}${post.image || '/images/download.jpg'}" alt="Before" />
+              </div>
+              <div>
+                <h5>After</h5>
+                <img src="${afterImageUrl}" alt="After" onerror="this.src='${API_ORIGIN}/images/download.jpg'" />
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      trackingContent.innerHTML = trackingHtml;
+      document.getElementById("trackingModal").classList.add('show');
+    }
+
+    function openPostDetail(post) {
+      currentPost = post;
+      const detail = document.getElementById('postDetail');
+      const actions = document.getElementById('postActions');
+      const statusSelect = document.getElementById('postStatusSelect');
+      const status = computeStatus(post);
+      detail.innerHTML = `
+        <div class="post-detail-header">
+          <img src="${post.image ? API_ORIGIN + post.image : API_ORIGIN + '/images/download.jpg'}" 
+               alt="Post image" />
+        </div>
+        <h3>${escapeHtml(post.description)}</h3>
+        <div class="post-meta">
+          <span><i class="fa fa-location-dot"></i> ${escapeHtml(post.location || '')}</span>
+          <span><i class="fa fa-tag"></i> ${(post.officials && post.officials.length) ? post.officials.join(', ') : 'general'}</span>
+          <span><i class="fa fa-thumbs-up"></i> ${typeof post.score === 'number' ? post.score : 0}</span>
+          <span><i class="fa fa-clock"></i> ${timeAgo(post.createdAt)}</span>
+        </div>
+        <div class="status-summary-inline">
+          <h4>Status Summary</h4>
+          <ul>
+            <li><strong>Current Status:</strong> ${status.replace('_', ' ')}</li>
+            <li><strong>Views:</strong> ${typeof post.views === 'number' ? post.views : 0}</li>
+            <li><strong>Score:</strong> ${typeof post.score === 'number' ? post.score : 0}</li>
+          </ul>
+        </div>
+        ${post.resolution?.afterImage ? `
+          <div class="resolution-images">
+            <h4>Resolution Images</h4>
+            <div class="image-comparison">
+              <div>
+                <h5>Before</h5>
+                <img src="${API_ORIGIN}${post.image || '/images/download.jpg'}" alt="Before" />
+              </div>
+              <div>
+                <h5>After</h5>
+                <img src="${post.resolution.afterImage.startsWith('/') ? API_ORIGIN + post.resolution.afterImage : API_ORIGIN + '/images/' + post.resolution.afterImage}" alt="After" onerror="this.src='${API_ORIGIN}/images/download.jpg'" />
+              </div>
+            </div>
+          </div>
+        ` : ''}
+      `;
+      statusSelect.value = status;
+      actions.innerHTML = `
+        <button class="btn btn-secondary" onclick="showPostTracking(${JSON.stringify(post).replace(/"/g, '&quot;')})">
+          <i class="fa fa-eye"></i> View Progress
+        </button>
+      `;
+      document.getElementById('postModal').classList.add('show');
+    }
+
+    function closePostModal() { 
+      document.getElementById("postModal").classList.remove('show'); 
+      currentPost = null;
+    }
+
+    function closeProgressModal() { 
+      document.getElementById("progressModal").classList.remove('show'); 
+    }
+
+    function closeResolutionModal() { 
+      document.getElementById("resolutionModal").classList.remove('show');
+      document.getElementById('resolutionImage').value = '';
+      resolutionPost = null;
+    }
+
+    function closeTrackingModal() { 
+      document.getElementById("trackingModal").classList.remove('show'); 
+    }
+
+    function openProfileModal() { 
+      document.getElementById("profileModal").classList.add('show'); 
+    }
+
+    function closeProfileModal() { 
+      document.getElementById("profileModal").classList.remove('show'); 
+    }
+
+    function NumericalSort(a, b) {
+      return a > b ? -1 : a < b ? 1 : 0;
+    }
+
+    async function renderPosts() {
+      const postsList = document.getElementById('postsList');
+      postsList.innerHTML = '';
+      try {
+        const res = await fetch(`${API_BASE}/posts?cacheBust=${Date.now()}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('civiceye_token')}` }
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const posts = await res.json();
+        console.log('Fetched posts:', posts);
+        if (!Array.isArray(posts) || posts.length === 0) {
+          postsList.innerHTML = '<div class="empty">No posts yet.</div>';
+          return;
+        }
+        let filteredPosts = posts;
+        if (currentFilter !== 'all') {
+          filteredPosts = posts.filter(p => {
+            const officials = p.officials || [];
+            return officials.some(official => 
+              official.toLowerCase().includes(currentFilter.toLowerCase())
+            );
+          });
+        }
+        if (currentSort === 'recent') {
+          filteredPosts.sort((a, b) => NumericalSort(new Date(b.createdAt), new Date(a.createdAt)));
+        } else if (currentSort === 'likes') {
+          filteredPosts.sort((a, b) => NumericalSort((b.score || 0), (a.score || 0)));
+        } else if (currentSort === 'unresolved') {
+          filteredPosts.sort((a, b) => {
+            const aStatus = computeStatus(a);
+            const bStatus = computeStatus(b);
+            if (aStatus === 'new' && bStatus !== 'new') return -1;
+            if (aStatus === 'in_progress' && bStatus === 'solved') return -1;
+            return 0;
+          });
+        }
+        if (filteredPosts.length === 0) {
+          postsList.innerHTML = '<div class="empty">No posts match the selected filter.</div>';
+          return;
+        }
+        const html = filteredPosts.map(p => {
+          const status = computeStatus(p);
+          const badgeClass = status === 'solved' ? 'badge-solved' : status === 'in_progress' ? 'badge-in_progress' : 'badge-new';
+          const imageUrl = p.image ? `${API_ORIGIN}${p.image}` : `${API_ORIGIN}/images/download.jpg`;
+          const tag = (p.officials && p.officials.length) ? p.officials[0] : 'general';
+          const rating = Math.min(5, Math.max(1, Math.round(((p.score || 0) % 10) / 2)));
+          const hasProgress = status === 'in_progress' || status === 'solved';
+          return `
+            <article class="product-card status-${status}" onclick="openPostDetail(${JSON.stringify(p).replace(/"/g, '&quot;')})" style="cursor: pointer;">
+              <div class="thumb">
+                <img src="${imageUrl}" alt="Post image" onerror="this.src='${API_ORIGIN}/images/download.jpg'" />
+              </div>
+              <div class="pc-body">
+                <h4 class="pc-title">${escapeHtml(p.description)}</h4>
+                <div class="pc-row rating">
+                  ${starsHtml(rating)}
+                  <span class="count">${typeof p.score === 'number' ? p.score : 0}</span>
+                  ${hasProgress ? '<span class="progress-tick">✅</span>' : ''}
+                </div>
+                <div class="pc-row meta">
+                  <span class="chip">${escapeHtml(tag)}</span>
+                  <span class="chip">${escapeHtml(p.location || '')}</span>
+                  <span class="badge ${badgeClass}">${status.replace('_',' ')}</span>
+                </div>
+                <div class="pc-row subtle">${timeAgo(p.createdAt)}</div>
+              </div>
+            </article>
+          `;
+        }).join('');
+        postsList.innerHTML = html;
+      } catch (e) {
+        postsList.innerHTML = '<div class="empty">Failed to load posts.</div>';
+        console.error('Official posts load error:', e);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('civiceye_token');
+      localStorage.removeItem('civiceye_user_v1');
+      localStorage.removeItem('civiceye_userId');
+      window.location.href = 'index.html';
+    }
+
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal') && e.target.classList.contains('show')) {
+        e.target.classList.remove('show');
+        if (e.target.id === 'postModal') {
+          currentPost = null;
+        } else if (e.target.id === 'resolutionModal') {
+          document.getElementById('resolutionImage').value = '';
+          resolutionPost = null;
+        }
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadOfficialDetails();
+      renderPosts();
+    });
+  </script>
 </body>
 </html>
