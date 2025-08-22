@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Login</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+    
+            min-height: 100vh;
+            background-color: black; 
+            color: #FFF085;
+            font-family: sans-serif;
+            margin: 0; 
+        }
+
+        .login-box { 
+            background-color: #2C2F33; 
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            width: 350px; 
+        }
+
+        form {
+            width: 300px;
+            padding: 20px;
+            border: 1px solid #7289DA;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #7289DA;
+            color: #FFF085;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        a {
+            color: #7289DA;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box"> 
+        <h1>Citizen Login</h1>
+        <form id="loginForm" onsubmit="return login()">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password">
+
+            <button type="submit">Log in</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
